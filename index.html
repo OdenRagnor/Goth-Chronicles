@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Gothic Chronicle</title>
+    <style>
+        /* Gothic Color Palette & Typography */
+        body { 
+            font-family: "Garamond", "Baskerville", "Georgia", serif; 
+            max-width: 850px; 
+            margin: 40px auto; 
+            padding: 0 20px; 
+            color: #c5c5c5; 
+            background-color: #0b0c10; /* Velvet black */
+            background-image: radial-gradient(#1f2128 10%, #0b0c10 90%);
+        }
+
+        /* Ornate container mimicking an ancient tome */
+        .feed-container { 
+            background: #12141a; /* Dark iron */
+            border: 2px solid #5a1111; /* Dried blood red */
+            border-radius: 4px; 
+            padding: 30px; 
+            box-shadow: 0 0 25px rgba(90, 17, 17, 0.4); 
+        }
+
+        /* Ornate Gothic Header */
+        h2 {
+            font-size: 2.2rem;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #8b0000; /* Deep crimson */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(139, 0, 0, 0.6);
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px double #5a1111;
+            padding-bottom: 15px;
+            font-weight: normal;
+        }
+
+        /* Interactive Filter Bar */
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background-color: #0b0c10;
+            color: #888;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            font-family: "Garamond", serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            color: #ff3333;
+            border-color: #8b0000;
+            box-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+        }
+
+        /* Feed Item Layout */
+        .feed-item { 
+            margin-bottom: 30px; 
+            padding-bottom: 25px; 
+            border-bottom: 1px solid #2a1111; /* Subtle crimson partition */
+            transition: all 0.3s ease;
+        }
+        
+        .feed-item:last-child { 
+            margin-bottom: 0; 
+            padding-bottom: 0; 
+            border-bottom: none; 
+        }
+
+        /* Article Titles as Gothic Links */
+        h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 1.4rem; 
+            font-weight: normal;
+        }
+        
+        a { 
+            color: #8b0000; 
+            text-decoration: none; 
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+        
+        a:hover { 
+            color: #ff3333; /* Glow crimson on hover */
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.5);
+        }
+
+        /* Source Tag */
+        .source-tag {
+            color: #7a1111;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Article Excerpt */
+        p { 
+            color: #9da3a8; 
+            line-height: 1.6; 
+            margin: 0; 
+            font-style: italic; /* Romanticist literary style */
+        }
+
+        /* Metadata (Dates) */
+        .meta { 
+            font-size: 0.8rem; 
+            color: #555c66; 
+            margin-top: 10px; 
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Loading / Status */
+        #rss-feed {
+            font-size: 1.1rem;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="feed-container">
+        <h2>✙ The Gothic Chronicle ✙</h2>
+        
+        <!-- Interactive Category Toggle Buttons -->
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterFeeds('all')">All Scrolls</button>
+            <button class="filter-btn" onclick="filterFeeds('horror')">Horror & Reviews</button>
+            <button class="filter-btn" onclick="filterFeeds('crime')">True Crime</button>
+            <button class="filter-btn" onclick="filterFeeds('death')">Death & Obituaries</button>
+        </div>
+
+        <div id="rss-feed">The spirits are whispering, retrieving scrolls...</div>
+    </div>
+
+    <script>
+        // 1. Curated list with assigned categories
+        const FEEDS = [
+            // --- HORROR CATEGORY ---
+            { name: "Bloody Disgusting", category: "horror", url: "https://bloody-disgusting.com/feed/" },
+            { name: "Dread Central", category: "horror", url: "https://www.dreadcentral.com/feed/" },
+            { name: "Horror News Net", category: "horror", url: "https://horrornewsnet.com/feed/" },
+            { name: "Epic Film Guys Reviews", category: "horror", url: "https://epicfilmguys.podbean.com/feed/" },
+            { name: "Nightmare Magazine Fiction", category: "horror", url: "https://www.nightmare-magazine.com/feed/" },
+
+            // --- TRUE CRIME CATEGORY ---
+            { name: "Dateline NBC", category: "crime", url: "https://feeds.simplecast.com/65_u_t72" },
+            { name: "Morbid: True Crime", category: "crime", url: "https://feeds.simplecast.com/iddhH_fD" },
+            { name: "MrBallen Dark Stories", category: "crime", url: "https://feeds.simplecast.com/i9xiph9o" },
+            { name: "Last Podcast on the Left", category: "crime", url: "https://feeds.simplecast.com/i78z97y0" },
+            { name: "Crime Online News", category: "crime", url: "https://www.crimeonline.com/feed/" },
+
+            // --- DEATH & OBITUARIES ---
+            { name: "The Guardian Obituaries", category: "death", url: "https://www.theguardian.com/tone/obituaries/rss" },
+            { name: "MIT Memorials", category: "death", url: "https://news.mit.edu/rss/topic/obituaries" },
+            { name: "Western Wayne Daily", category: "death", url: "https://westernwaynenews.com/obituaries/feed/" },
+            { name: "Turner Funeral Announcements", category: "death", url: "https://turnerfamilyfuneral.com/category/obituaries/feed/" }
+        ];
+
+        // XML-to-JSON engine base URL 
+        // TIP: If you register a free key on rss2json, you can append `&api_key=YOUR_KEY&count=100` to this URL to pull 100 items per feed!
+        const PARSER_API_BASE = 'https://api.rss2json.com/v1/api.json?rss_url=';
+        
+        let globalArticles = []; // Store fetched articles globally for sorting & filtering
+
+        async function loadAllFeeds() {
+            try {
+                // 2. Map feeds into fetch promises
+                const fetchPromises = FEEDS.map(async (feed) => {
+                    try {
+                        const response = await fetch(PARSER_API_BASE + encodeURIComponent(feed.url));
+                        if (!response.ok) {
+                            console.warn(`⚠️ Portal failed for ${feed.name} (Status: ${response.status})`);
+                            return []; 
+                        }
+                        
+                        const data = await response.json();
+                        if (data.status !== 'ok') {
+                            console.warn(`⚠️ Parsing failed for ${feed.name}`);
+                            return [];
+                        }
+                        
+                        // Map sources to individual items and attach category
+                        return data.items.map(item => ({
+                            ...item,
+                            sourceName: feed.name,
+                            category: feed.category
+                        }));
+                    } catch (err) {
+                        console.warn(`⚠️ The scroll for ${feed.name} is temporarily unreadable.`, err);
+                        return [];
+                    }
+                });
+
+                // 3. Resolve all requests concurrently
+                const results = await Promise.all(fetchPromises);
+                
+                // Clear out previous global storage and load everything
+                globalArticles = [];
+                results.forEach((articles) => {
+                    globalArticles = globalArticles.concat(articles);
+                });
+
+                if (globalArticles.length === 0) {
+                    throw new Error("All dark channels are quiet. No scrolls could be retrieved.");
+                }
+
+                // 4. Sort all combined articles chronologically (newest first)
+                globalArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+                // 5. Initial Render: Render ALL fetched items with NO limits!
+                renderArticles(globalArticles);
+
+            } catch (error) {
+                document.getElementById('rss-feed').innerHTML = `<p style="color: #a30000; font-weight: bold; text-align: center;">⚠️ Despair! ${error.message}</p>`;
+            }
+        }
+
+        // Dedicated rendering function
+        function renderArticles(articlesList) {
+            let html = '';
+            
+            if (articlesList.length === 0) {
+                document.getElementById('rss-feed').innerHTML = `<p style="text-align: center; color: #666; font-style: italic;">The void is empty. No scrolls are active in this category.</p>`;
+                return;
+            }
+
+            // LOOP: Iterates through EVERY item inside the array, without caps!
+            for (let i = 0; i < articlesList.length; i++) {
+                const article = articlesList[i];
+                const title = article.title || "Untitled Fragment";
+                const link = article.link || "#";
+                const description = article.description || "";
+                const source = article.sourceName || "Unknown Source";
+                
+                const pubDate = new Date(article.pubDate).toLocaleDateString(undefined, { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                html += `
+                    <div class="feed-item" data-category="${article.category}">
+                        <div class="source-tag">✙ Category: ${article.category.toUpperCase()} | Source: ${source} ✙</div>
+                        <h3><a href="${link}" target="_blank" rel="noopener">✠ ${title}</a></h3>
+                        <p>${description}</p>
+                        <div class="meta">Emanated on: ${pubDate}</div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('rss-feed').innerHTML = html;
+        }
+
+        // Local Filter Functionality
+        function filterFeeds(category) {
+            // Manage UI Active State of Buttons
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (category === 'all') {
+                renderArticles(globalArticles);
+            } else {
+                const filtered = globalArticles.filter(art => art.category === category);
+                renderArticles(filtered);
+            }
+        }
+
+        loadAllFeeds();
+    </script>
+</body>
+</html>
